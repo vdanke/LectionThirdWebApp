@@ -11,6 +11,13 @@
     <title>Main</title>
 </head>
 <body>
+    ${users}
     <h3>This is main page</h3>
+
+    <form action="${pageContext.request.contextPath}/users" method="post">
+        <input type="text" name="username" placeholder="Insert your login">
+        <input type="password" name="password" placeholder="Insert your password">
+        <input type="submit" value="Login">
+    </form>
 </body>
 </html>
