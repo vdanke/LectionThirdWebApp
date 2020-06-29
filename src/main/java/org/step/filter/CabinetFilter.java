@@ -31,10 +31,11 @@ public class CabinetFilter implements Filter {
 
         String token = request.getHeader("Token");
 
-        TokenCreator.validateToken(token, (User) user);
+        boolean isValidToken = TokenCreator.validateToken(token, (User) user);
 
-        session.invalidate();
-
+        if (!isValidToken) {
+            session.invalidate();
+        }
         filterChain.doFilter(request, response);
     }
 

@@ -15,6 +15,10 @@ public class TokenCreator {
     }
 
     public static boolean validateToken(String token, User user) {
+        if (user == null) {
+            return false;
+        }
+
         String secretKey = SECURITY.getString("token");
 
         String userToken = user.getUsername().concat(user.getId().toString());
