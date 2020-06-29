@@ -12,6 +12,7 @@
 </head>
 <body>
     <h3>CABINET</h3>
+    ${sessionScope.user}
     <a href="index.jsp">Main page</a>
 </body>
 </html>

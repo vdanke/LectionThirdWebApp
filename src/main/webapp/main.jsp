@@ -14,10 +14,16 @@
     ${users}
     <h3>This is main page</h3>
 
-    <form action="${pageContext.request.contextPath}/users" method="post">
+    <form action="${pageContext.request.contextPath}/users/login" method="post">
         <input type="text" name="username" placeholder="Insert your login">
         <input type="password" name="password" placeholder="Insert your password">
         <input type="submit" value="Login">
+    </form>
+    <form action="${pageContext.request.contextPath}/users/registration" method="post">
+        <input type="text" name="username" placeholder="Insert your login">
+        <input type="password" name="password" placeholder="Insert your password">
+        <input type="text" name="fullName" placeholder="Insert your name">
+        <input type="submit" value="Registration">
     </form>
 </body>
 </html>

@@ -2,6 +2,7 @@ package org.step.repository.connection.pool;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -65,22 +66,48 @@ public class ConnectionPoolImpl implements ConnectionPool {
 
     @Override
     public void commitTransaction(Connection connection) {
-
+        try {
+            if (connection != null) {
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            System.out.println("Commit is not successful " + e.toString());
+        }
     }
 
     @Override
     public void rollbackTransaction(Connection connection) {
-
+        try {
+            if (connection != null) {
+                connection.rollback();
+            }
+        } catch (SQLException e) {
+            System.out.println("Rollback is not successful " + e.toString());
+        }
     }
 
     @Override
     public void rollbackTransactionWithSavePoint(Connection connection, Savepoint savepoint) {
-
+        try {
+            if (connection != null) {
+                connection.rollback(savepoint);
+            }
+        } catch (SQLException e) {
+            System.out.println("Rollback with savepoint is not successful " + e.toString());
+        }
     }
 
     @Override
     public Optional<Savepoint> setSavePoint(Connection connection, String savePointName) {
-        return Optional.empty();
+        try {
+            if (connection != null && savePointName != null && !savePointName.isEmpty()) {
+                return Optional.ofNullable(connection.setSavepoint(savePointName));
+            } else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            return Optional.empty();
+        }
     }
 
     private void init() {

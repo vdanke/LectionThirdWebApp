@@ -1,11 +1,11 @@
-package org.step.repository;
+package org.step.service;
 
 import org.step.model.User;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface UserRepository {
+public interface UserService {
 
     User save(User user);
 
@@ -15,7 +15,7 @@ public interface UserRepository {
 
     List<User> findAllUsers();
 
-    Optional<User> findUserById(Long id);
+    User findUserById(Long id);
 
     User login(String username, String password);
 }

@@ -17,27 +17,28 @@ public class CabinetController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Cookie[] cookies = req.getCookies();
-
-        User user = (User) req.getSession().getAttribute("user");
-
-        if (user != null && cookies != null) {
-            Cookie securityCookie = Stream.of(cookies)
-                    .filter(cookie -> cookie.getName().equals("Token"))
-                    .findAny()
-                    .orElseThrow(() -> new IllegalStateException("Token not found"));
-
-            String token = securityCookie.getValue();
-
-            boolean isValidToken = TokenCreator.validateToken(token, user);
-
-            if (isValidToken) {
-                System.out.println("OKEY");
-            } else {
-                System.out.println("BAD");
-            }
-        } else {
-            throw new IllegalStateException("User is null");
-        }
+//        Cookie[] cookies = req.getCookies();
+//
+//        User user = (User) req.getSession().getAttribute("user");
+//
+//        if (user != null && cookies != null) {
+//            Cookie securityCookie = Stream.of(cookies)
+//                    .filter(cookie -> cookie.getName().equals("Token"))
+//                    .findAny()
+//                    .orElseThrow(() -> new IllegalStateException("Token not found"));
+//
+//            String token = securityCookie.getValue();
+//
+//            boolean isValidToken = TokenCreator.validateToken(token, user);
+//
+//            if (isValidToken) {
+//                System.out.println("OKEY");
+//            } else {
+//                System.out.println("BAD");
+//            }
+//        } else {
+//            throw new IllegalStateException("User is null");
+//        }
+        req.getRequestDispatcher("/cabinet.jsp").forward(req, resp);
     }
 }
