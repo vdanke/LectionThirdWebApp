@@ -7,6 +7,7 @@ import org.step.repository.connection.pool.ConnectionPoolImpl;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -158,7 +159,9 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public List<User> findAllUsers() {
-        return null;
+        return new ArrayList<>(
+                Arrays.asList(new User("first", "first", "first"))
+        );
     }
 
     @Override

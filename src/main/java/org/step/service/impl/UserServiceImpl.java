@@ -1,5 +1,6 @@
 package org.step.service.impl;
 
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.step.model.User;
 import org.step.repository.UserRepository;
 import org.step.repository.impl.UserRepositoryImpl;
@@ -9,7 +10,12 @@ import java.util.List;
 
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository = new UserRepositoryImpl();
+    private final UserRepository userRepository;
+
+    public UserServiceImpl() {
+        this.userRepository = new AnnotationConfigApplicationContext("org.step")
+                .getBean("userRepository", UserRepository.class);
+    }
 
     @Override
     public User save(User user) {

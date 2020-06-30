@@ -1,17 +1,17 @@
 package org.step.controller;
 
 import org.step.model.User;
-import org.step.repository.UserData;
 import org.step.security.TokenCreator;
 import org.step.service.UserService;
 import org.step.service.impl.UserServiceImpl;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @WebServlet(urlPatterns = {"/users/login", "/login-registration"})
 public class LoginController extends HttpServlet {
@@ -20,11 +20,13 @@ public class LoginController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Map<Integer, User> userMap = UserData.getUserMap();
+        List<User> allUsers = new ArrayList<>(
+                Arrays.asList(
+                        new User("full", "user", "password"),
+                        new User("sec", "userSec", "passwordSec"))
+        );
 
-        System.out.println(userMap);
-
-        req.setAttribute("users", userMap);
+        req.setAttribute("users", allUsers);
 
         req.getRequestDispatcher("/main.jsp").forward(req, resp);
     }
