@@ -1,10 +1,9 @@
 package org.step.service.impl;
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.step.model.User;
 import org.step.repository.UserRepository;
-import org.step.repository.impl.UserRepositoryImpl;
 import org.step.service.UserService;
 
 import java.util.List;
@@ -13,35 +12,29 @@ import java.util.List;
 @Service
 @Repository
  */
-@Component("userService")
+@Service
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository = new UserRepositoryImpl();
+    private final UserRepository userRepository;
 
-//    public UserServiceImpl() {
-//        this.userRepository = new AnnotationConfigApplicationContext("org.step")
-//                .getBean("userRepository", UserRepository.class);
-//    }
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public User save(User user) {
-        if (user == null) {
-            throw new IllegalStateException("User is null");
-        }
-        if (user.getUsername() == null || user.getPassword() == null || user.getFullName() == null) {
-            throw new IllegalStateException("Something is null");
-        }
-        return userRepository.save(user);
+        return null;
     }
 
     @Override
     public void delete(User user) {
-        userRepository.delete(user);
+
     }
 
     @Override
     public List<User> findAllUsersAfterInsert(User user) {
-        return userRepository.findAllUsersAfterInsert(user);
+        return null;
     }
 
     @Override
@@ -51,12 +44,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserById(Long id) {
-        return userRepository.findUserById(id)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+        return null;
     }
 
     @Override
     public User login(String username, String password) {
-        return userRepository.login(username, password);
+        return null;
     }
 }

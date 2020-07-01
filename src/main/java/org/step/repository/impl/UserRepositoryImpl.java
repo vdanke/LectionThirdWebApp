@@ -1,171 +1,99 @@
 package org.step.repository.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import org.step.model.User;
 import org.step.repository.UserRepository;
-import org.step.repository.connection.pool.ConnectionPool;
-import org.step.repository.connection.pool.ConnectionPoolImpl;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class UserRepositoryImpl implements UserRepository {
 
-    private static final String INSERT_NEW_USER = "INSERT INTO USERS_SECOND (username, password, fullName) VALUES (?, ?, ?)";
-    private static final String DELETE_EXIST_USER = "DELETE FROM USERS_SECOND WHERE id = ?";
-    private static final String FIND_ALL_USERS_SECOND = "SELECT * FROM USERS_SECOND";
-    private static final String LOGIN_USER = "SELECT * FROM USERS_SECOND WHERE USERNAME=? AND PASSWORD=?";
+    private final DataSource dataSource;
+    private final User user = new User(500, "test", "test", "test");
 
-    private ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+    @Autowired
+    public UserRepositoryImpl(@Qualifier("dataSource") DataSource data) {
+        this.dataSource = data;
+    }
+
+    @PostConstruct
+    public void init() throws SQLException {
+        Connection connection = dataSource.getConnection();
+
+        PreparedStatement preparedStatement = connection
+                .prepareStatement("INSERT INTO USERS_SECOND(fullname, username, password, id) values (?, ?, ?, ?)");
+
+        preparedStatement.setString(1, user.getFullName());
+        preparedStatement.setString(2, user.getUsername());
+        preparedStatement.setString(3, user.getPassword());
+        preparedStatement.setInt(4, user.getId());
+
+        preparedStatement.executeUpdate();
+    }
+
+    @PreDestroy
+    public void destroy() throws SQLException {
+        Connection connection = dataSource.getConnection();
+
+        PreparedStatement preparedStatement = connection
+                .prepareStatement("DELETE FROM USERS_SECOND WHERE ID=?");
+
+        preparedStatement.setLong(1, user.getId());
+
+        preparedStatement.executeUpdate();
+    }
 
     @Override
     public User save(User user) {
-        Connection connection = connectionPool.getConnection();
-
-        try {
-            connection.setAutoCommit(false);
-
-            PreparedStatement preparedStatement = connection.prepareStatement(INSERT_NEW_USER);
-
-            preparedStatement.setString(1, user.getUsername());
-            preparedStatement.setString(2, user.getPassword());
-            preparedStatement.setString(3, user.getFullName());
-
-            int i = preparedStatement.executeUpdate();
-
-            if (i != -1) {
-                connectionPool.commitTransaction(connection);
-                return user;
-            } else {
-                connectionPool.rollbackTransaction(connection);
-                return null;
-            }
-        } catch (SQLException e) {
-            connectionPool.rollbackTransaction(connection);
-            e.printStackTrace();
-        } finally {
-            connectionPool.releaseConnection(connection);
-        }
         return null;
     }
 
     @Override
     public void delete(User user) {
-        Connection connection = connectionPool.getConnection();
 
-        try {
-            connection.setAutoCommit(false);
-
-            PreparedStatement preparedStatement = connection.prepareStatement(DELETE_EXIST_USER);
-
-            preparedStatement.setLong(1, user.getId());
-
-            int i = preparedStatement.executeUpdate();
-
-            if (i != -1) {
-                connectionPool.commitTransaction(connection);
-            } else {
-                connectionPool.rollbackTransaction(connection);
-            }
-        } catch (SQLException e) {
-            connectionPool.rollbackTransaction(connection);
-            e.printStackTrace();
-        } finally {
-            connectionPool.releaseConnection(connection);
-        }
     }
 
     @Override
     public List<User> findAllUsersAfterInsert(User user) {
-        Connection connection = connectionPool.getConnection();
-        Savepoint savepoint = null;
-        List<User> userList = new ArrayList<>();
-
-        try {
-            connection.setAutoCommit(false);
-
-            PreparedStatement preparedStatement = connection.prepareStatement(INSERT_NEW_USER);
-
-            preparedStatement.setString(1, user.getUsername());
-            preparedStatement.setString(2, user.getPassword());
-            preparedStatement.setString(3, user.getFullName());
-
-            int i = preparedStatement.executeUpdate();
-
-            if (i != -1) {
-                Optional<Savepoint> first = connectionPool.setSavePoint(connection, "first");
-
-                savepoint = first
-                        .orElseThrow(SQLException::new);
-
-                System.out.println("First transaction is committed");
-            } else {
-                connectionPool.rollbackTransaction(connection);
-            }
-            Statement statement = connection.createStatement();
-
-            ResultSet resultSet = statement.executeQuery(FIND_ALL_USERS_SECOND);
-
-            if (resultSet == null) {
-                connectionPool.rollbackTransactionWithSavePoint(connection, savepoint);
-            } else {
-                while (resultSet.next()) {
-                    userList.add(
-                            new User(
-                                    resultSet.getInt(1),
-                                    resultSet.getString(2),
-                                    resultSet.getString(3),
-                                    resultSet.getString(4)
-                            )
-                    );
-                }
-                connectionPool.commitTransaction(connection);
-                System.out.println("Second transaction is committed");
-            }
-            return userList;
-        } catch (SQLException e) {
-            connectionPool.rollbackTransaction(connection);
-            e.printStackTrace();
-        } finally {
-            connectionPool.releaseConnection(connection);
-        }
-        return userList;
-    }
-
-    @Override
-    public User login(String username, String password) {
-        Connection connection = connectionPool.getConnection();
-
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(LOGIN_USER);
-
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, password);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                return new User(resultSet.getInt(1), resultSet.getString(4), resultSet.getString(2), resultSet.getString(3));
-            }
-        } catch (SQLException e) {
-            return null;
-        } finally {
-            connectionPool.releaseConnection(connection);
-        }
         return null;
     }
 
     @Override
     public List<User> findAllUsers() {
-        return new ArrayList<>(
-                Arrays.asList(new User("first", "first", "first"))
-        );
+        List<User> userList = new ArrayList<>();
+
+        try {
+            Connection connection = dataSource.getConnection();
+
+            Statement statement = connection.createStatement();
+
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM USERS_SECOND");
+
+            while (resultSet.next()) {
+                userList.add(new User(resultSet.getInt(1), resultSet.getString(4), resultSet.getString(2), resultSet.getString(3)));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return userList;
     }
 
     @Override
     public Optional<User> findUserById(Long id) {
         return Optional.empty();
+    }
+
+    @Override
+    public User login(String username, String password) {
+        return null;
     }
 }
