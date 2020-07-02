@@ -8,6 +8,8 @@ import org.step.repository.UserRepository;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,39 +19,18 @@ import java.util.Optional;
 @Repository
 public class UserRepositoryImpl implements UserRepository {
 
-    private final DataSource dataSource;
-    private final User user = new User(500, "test", "test", "test");
-
-    @Autowired
-    public UserRepositoryImpl(@Qualifier("dataSource") DataSource data) {
-        this.dataSource = data;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
+    private final User user = new User("first", "first", "first");
 
     @PostConstruct
     public void init() throws SQLException {
-        Connection connection = dataSource.getConnection();
-
-        PreparedStatement preparedStatement = connection
-                .prepareStatement("INSERT INTO USERS_SECOND(fullname, username, password, id) values (?, ?, ?, ?)");
-
-        preparedStatement.setString(1, user.getFullName());
-        preparedStatement.setString(2, user.getUsername());
-        preparedStatement.setString(3, user.getPassword());
-        preparedStatement.setInt(4, user.getId());
-
-        preparedStatement.executeUpdate();
+        System.out.println("Init method");
     }
 
     @PreDestroy
     public void destroy() throws SQLException {
-        Connection connection = dataSource.getConnection();
-
-        PreparedStatement preparedStatement = connection
-                .prepareStatement("DELETE FROM USERS_SECOND WHERE ID=?");
-
-        preparedStatement.setLong(1, user.getId());
-
-        preparedStatement.executeUpdate();
+        System.out.println("Destroy method");
     }
 
     @Override
@@ -69,22 +50,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public List<User> findAllUsers() {
-        List<User> userList = new ArrayList<>();
-
-        try {
-            Connection connection = dataSource.getConnection();
-
-            Statement statement = connection.createStatement();
-
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM USERS_SECOND");
-
-            while (resultSet.next()) {
-                userList.add(new User(resultSet.getInt(1), resultSet.getString(4), resultSet.getString(2), resultSet.getString(3)));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return userList;
+        return new ArrayList<>();
     }
 
     @Override

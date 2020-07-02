@@ -1,13 +1,22 @@
 package org.step.configuration;
 
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Objects;
+import java.util.Properties;
 
 /*
 Environment ->
@@ -26,13 +35,14 @@ Destroying context -> destroy method -> close context
 @PropertySources({
         @PropertySource("classpath:db.properties")
 })
+@EnableTransactionManagement
 public class DatabaseConfiguration {
 
 //    @Autowired
     private final Environment environment;
 
-    @Value("${db.url}")
-    private String url;
+//    @Value("${db.url}")
+//    private String url;
 
     @Autowired
     public DatabaseConfiguration(Environment environment) {
@@ -55,18 +65,57 @@ public class DatabaseConfiguration {
         return dataSource;
     }
 
-    @Bean("customDataSource")
-    @Scope("prototype")
-    public DataSource customDataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+    @Bean
+//    @DependsOn(value = {"dataSource"})
+    public LocalContainerEntityManagerFactoryBean entityManager(DataSource dataSource) {
+        LocalContainerEntityManagerFactoryBean emFactory = new LocalContainerEntityManagerFactoryBean();
 
-        dataSource.setUrl("bla");
-        dataSource.setUsername("bla");
-        dataSource.setPassword("bla");
-        dataSource.setDriverClassName("bla");
+        emFactory.setDataSource(dataSource);
+        emFactory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+        emFactory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        emFactory.setJpaProperties(jpaProperties());
+        emFactory.setPackagesToScan("org.step");
 
-        return dataSource;
+        return emFactory;
     }
+
+    @Bean
+    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+        return new PersistenceExceptionTranslationPostProcessor();
+    }
+
+    @Bean
+    public JpaTransactionManager transactionManager(@Qualifier("entityManager") EntityManagerFactory entityManagerFactory) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+
+        transactionManager.setEntityManagerFactory(entityManagerFactory);
+
+        return transactionManager;
+    }
+
+    private Properties jpaProperties() {
+        Properties jpaProperties = new Properties();
+
+        jpaProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+        jpaProperties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+        jpaProperties.setProperty("hibernate.show_sql", "true");
+        jpaProperties.setProperty("hibernate.format_sql", "true");
+
+        return jpaProperties;
+    }
+
+//    @Bean("customDataSource")
+//    @Scope("prototype")
+//    public DataSource customDataSource() {
+//        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+//
+//        dataSource.setUrl("bla");
+//        dataSource.setUsername("bla");
+//        dataSource.setPassword("bla");
+//        dataSource.setDriverClassName("bla");
+//
+//        return dataSource;
+//    }
 
 //    @Autowired
 //    public void setEnvironment(Environment environment) {

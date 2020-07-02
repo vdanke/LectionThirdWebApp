@@ -1,12 +1,26 @@
 package org.step.model;
 
+import javax.persistence.*;
 import java.util.Objects;
 
+@Entity
+@Table(
+        name = "users"
+)
+//        uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})},
+//        indexes = {@Index(columnList = "username", unique = true)}
+//        )
 public class User {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
+    @Column(name = "full_name", length = 250)
     private String fullName;
+    @Column(name = "username", unique = true, length = 120)
     private String username;
+    @Column(name = "password", length = 120)
     private String password;
 
     public User() {
